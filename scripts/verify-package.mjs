@@ -26,6 +26,9 @@ if (!root) {
 }
 
 const problems = [];
+const warnings = [];
+const strictFolder = process.argv.includes("--strict-folder");
+const slug = (value) => (value || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
 const raw = fs.readFileSync(path.join(root, "SKILL.md"), "utf8");
 const frontmatter = raw.split("---")[1] ?? "";
 const nameMatch = frontmatter.match(/^name:[ \t]*(.+)$/m);
@@ -43,10 +46,17 @@ const numeric = (key) => {
   return Number.isFinite(value) && value > 0 ? value : null;
 };
 
+const folderMatches = name === folder || (name !== null && slug(name) === slug(folder));
 console.log("frontmatter name:", JSON.stringify(name));
 console.log("folder          :", JSON.stringify(folder));
-console.log("match           :", name === folder);
-if (name !== folder) problems.push("frontmatter name 与目录名不一致");
+console.log("match           :", folderMatches, strictFolder ? "(--strict-folder)" : "(宽松：仓库目录名可自定义)");
+if (!folderMatches) {
+  const message = "frontmatter name 与目录名不一致";
+  // 发布到 GitHub 时仓库/顶层目录叫 Reverse-Engineer-Skill，而技能名是
+  // reverse-engineer-20261017：这属于合法分发形态，旧实现却直接判失败。
+  if (strictFolder) problems.push(message + "（--strict-folder 已开启；安装到 skills 根目录时必须一致）");
+  else warnings.push(message + "（仓库分发场景可忽略；安装到 skills 根目录请用 --strict-folder 复检）");
+}
 
 const hasDescription = /^description:[ \t]*\S/m.test(frontmatter);
 const hasMetadata = /^metadata:/m.test(frontmatter);
@@ -68,6 +78,11 @@ if (missing.length) problems.push(`引用缺失: ${missing.join(", ")}`);
 
 const scripts = fs.readdirSync(path.join(root, "scripts")).filter((f) => f.endsWith(".mjs"));
 console.log("scripts         :", scripts.join(", "));
+
+const scriptRefs = [...new Set([...raw.matchAll(/scripts\/([a-z0-9-]+\.mjs)/g)].map((m) => m[1]))];
+const missingScripts = scriptRefs.filter((entry) => !fs.existsSync(path.join(root, "scripts", entry)));
+console.log("linked scripts  :", scriptRefs.length, missingScripts.length ? `缺失 ${missingScripts.join(", ")}` : "全部存在");
+if (missingScripts.length) problems.push(`SKILL.md 引用了不存在的脚本: ${missingScripts.join(", ")}`);
 
 /* ---------------------------------------------------------------- 版本断言 */
 
@@ -111,6 +126,10 @@ if (fs.existsSync(inventoryPath)) {
 }
 
 console.log("");
+if (warnings.length > 0) {
+  console.log("提示：");
+  for (const warning of warnings) console.log(`  ! ${warning}`);
+}
 if (problems.length > 0) {
   console.log("结论：未通过");
   for (const problem of problems) console.log(`  - ${problem}`);

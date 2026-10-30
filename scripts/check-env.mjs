@@ -31,6 +31,7 @@ import {
   pickRuntime,
 } from "./lib/node-runtime.mjs";
 import { detectEnvironment } from "./apply-env.mjs";
+import { resolveMcpConfig } from "./lib/mcp-config.mjs";
 
 const isWindows = process.platform === "win32";
 const EXTENSIONS = isWindows
@@ -543,7 +544,11 @@ const buildReport = () => {
  * without starting the server.
  */
 function readMcpEntry() {
-  const configPath = envPath("REA_MCP_CONFIG") || join(homedir(), ".workbuddy", "mcp.json");
+  const resolved = resolveMcpConfig({
+    explicit: envPath("REA_MCP_CONFIG"),
+    env: process.env,
+  });
+  const configPath = resolved.path;
   if (!existsSync(configPath)) {
     return { path: configPath, state: "missing", envNames: [], command: null };
   }

@@ -2,8 +2,8 @@
 name: Reverse Engineer-20261017
 description: 用 REA 对已编译产物做逆向工程并给出可核查结论——原生二进制（Hopper/Ghidra/IDA 伪代码、汇编、调用图、xref）、JavaScript/Electron 应用、.NET 程序集、Android APK 与设备、固件、WASM/EVM 字节码、SQLite、网络抓包、浏览器与进程运行时。当用户说"这个功能是怎么实现的/反编译看看/这个 exe、dll、so、apk、asar、wasm 里是什么/对比两个版本/还原这段算法/看看这个网页怎么做的"，或需要基于二进制证据（而非源码）下结论时激活。Reverse engineer binaries, Electron/JS apps, .NET assemblies, APKs, firmware and runtime behavior with evidence discipline.
 metadata:
-  version: "1.2.0"
-  updated: "2026-10-17"
+  version: "1.2.1"
+  updated: "2026-10-30"
   # 版本断言锚点：check-env.mjs 与 verify-package.mjs 用这三项检测技能是否已过期。
   # REA 升级后这三个值必须一起更新，否则检查会报 STALE。
   rea_version: "6.5.0"

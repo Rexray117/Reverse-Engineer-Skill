@@ -20,6 +20,7 @@ import { homedir } from "node:os";
 
 import { pickRuntime, reaScriptFor } from "./lib/node-runtime.mjs";
 import { detectEnvironment } from "./apply-env.mjs";
+import { resolveMcpConfig } from "./lib/mcp-config.mjs";
 
 const argv = process.argv.slice(2);
 const hasFlag = (name) => argv.includes(name);
@@ -34,9 +35,8 @@ const dryRun = hasFlag("--dry-run");
 const remove = hasFlag("--remove");
 const asJson = hasFlag("--json");
 const version = flagValue("--pin", process.env.REA_PINNED_VERSION || "6.5.0");
-const configPath = resolve(
-  flagValue("--config", process.env.WORKBUDDY_MCP_CONFIG || join(homedir(), ".workbuddy", "mcp.json")),
-);
+const mcpTarget = resolveMcpConfig({ explicit: flagValue("--config") });
+const configPath = mcpTarget.path;
 const serverKey = flagValue("--key", "rea");
 
 /** Resolve a bin shim (`.cmd` on Windows) to the JS entry it wraps. */
